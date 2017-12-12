@@ -1,0 +1,10 @@
+ColumnLimit: 80
+IndentWidth: 2
+UseTab: Never
+AccessModifierOffset: -2
+NamespaceIndentation: None
+DerivePointerAlignment: false
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakTemplateDeclarations: true
