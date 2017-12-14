@@ -21,7 +21,7 @@ public:
     id_ = id;
     log_size = ls;
     segment = new T[1 << log_size];
-    next = {};
+    next = nullptr;
   }
 
   ~Buffer() {
@@ -49,7 +49,7 @@ public:
   }
 
   Buffer<T> *resize(long b, long t, int delta) {
-    std::cout << log_size << std::endl;
+    std::cout << id_ + 1 << std::endl;
     auto buffer = new Buffer<T>(log_size + delta, id_ + 1);
     for (auto i = t; i < b; ++i)
       buffer->put(i, get(i));
@@ -59,19 +59,19 @@ public:
 };
 
 // A buffer_tls is created for each stealer thread. It is intended to
-// be local to that thread; the reclaimer creates one of these whenever
-// a stealer is created.
+// be local to that thread; the reclaimer creates one of these
+// whenever a stealer thread is created.
 struct buffer_tls {
   // The id of the buffer last used by the thread.
   std::atomic<long> id_last_used;
-  // If not set, we don't check `id_last_used`.
+  // If set, we don't check `id_last_used`.
   std::atomic<bool> was_idle;
   // The next buffer_tls in the list.
   buffer_tls *next;
 };
 
-// The reclaimer deals with additions and cleanup of the `buffer_tls`
-// list.
+// The reclaimer deals with additions to and cleanup of the
+// `buffer_tls` list.
 class Reclaimer {
 private:
   std::atomic<buffer_tls *> id_list;
@@ -144,7 +144,6 @@ public:
     if (size >= a->size() - 1) {
       unlinked = unlinked ? unlinked : a;
       a = a->resize(b, t, 1);
-      std::cout << "New buffer " << a->id() << std::endl;
       buffer.store(a, std::memory_order_release);
     }
 
@@ -184,7 +183,6 @@ public:
       if (size <= a->size() / 3 && size > 1 << log_initial_size) {
         unlinked = unlinked ? unlinked : a;
         a = a->resize(b, t, -1);
-        std::cout << "New buffer " << a->id() << std::endl;
         buffer.store(a, std::memory_order_release);
       }
 
@@ -349,4 +347,4 @@ std::pair<Worker<T>, Stealer<T>> deque() {
 
 } // namespace deque
 
-#endif
+#endif // DEQUE_HPP
