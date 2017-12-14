@@ -91,13 +91,13 @@ public:
   }
 
   buffer_tls *get_id_list() {
-    return id_list.load();
+    return id_list.load(std::memory_order_relaxed);
   }
 
   // Each stealer thread registers before using the deque.
   buffer_tls *register_thread() {
     auto tls = new buffer_tls{{0}, {true}, nullptr};
-    tls->next = id_list.load();
+    tls->next = get_id_list();
 
     while (!id_list.compare_exchange_weak(tls->next, tls)) {
       tls->next = id_list;
@@ -314,9 +314,8 @@ public:
     auto stolen = deque->steal();
     buffer_data->was_idle.store(true, std::memory_order_release);
 
-    // We can relax the read on the current buffer, since an outdated
-    // id will only delay the reclamation of a buffer.
-    auto b = deque->buffer.load(std::memory_order_relaxed);
+    // Stealers load the buffer pointer using memory_order_consume.
+    auto b = deque->buffer.load(std::memory_order_consume);
     buffer_data->id_last_used.store(b->id(), std::memory_order_relaxed);
 
     return stolen;
