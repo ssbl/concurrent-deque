@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <experimental/optional>
-#include <iostream>
 #include <memory>
 
 namespace deque {
@@ -49,7 +48,6 @@ public:
   }
 
   Buffer<T> *resize(long b, long t, int delta) {
-    std::cout << id_ + 1 << std::endl;
     auto buffer = new Buffer<T>(log_size + delta, id_ + 1);
     for (auto i = t; i < b; ++i)
       buffer->put(i, get(i));
@@ -236,7 +234,6 @@ public:
     while (unlinked->id() < min_id) {
       auto reclaimed = unlinked;
       unlinked = unlinked->next_buffer();
-      std::cout << "Reclaiming " << reclaimed->id() << std::endl;
       delete reclaimed;
     }
   }
