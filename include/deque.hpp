@@ -245,8 +245,7 @@ private:
   std::shared_ptr<Deque<T>> deque;
 
 public:
-  Worker(std::shared_ptr<Deque<T>> d) {
-    deque = d;
+  Worker(std::shared_ptr<Deque<T>> d) : deque(d) {
   }
 
   // Copy constructor.
@@ -254,8 +253,7 @@ public:
   Worker(const Worker<T> &w) = delete;
 
   // Move constructor.
-  Worker(Worker<T> &&w) {
-    deque = w.deque;
+  Worker(Worker<T> &&w) : deque(w.deque) {
     w.deque = nullptr;
   }
 
@@ -278,26 +276,26 @@ private:
   buffer_tls *buffer_data;
 
 public:
-  Stealer(std::shared_ptr<Deque<T>> d) {
-    deque = d;
-    buffer_data = deque->reclaimer.register_thread();
+  Stealer(std::shared_ptr<Deque<T>> d)
+    : deque(d)
+    , buffer_data(deque->reclaimer.register_thread()) {
   }
 
   // Copy constructor.
   //
   // Used whenever a new stealer thread is created.
-  Stealer(const Stealer<T> &s) {
-    deque = s.deque;
-    buffer_data = deque->reclaimer.register_thread();
+  Stealer(const Stealer<T> &s)
+    : deque(s.deque)
+    , buffer_data(deque->reclaimer.register_thread()) {
   }
 
   // Move constructor.
   //
   // Used when we're passing the stealer end around in the same
   // thread.
-  Stealer(Stealer<T> &&s) {
-    deque = s.deque;
-    buffer_data = s.buffer_data;
+  Stealer(Stealer<T> &&s)
+    : deque(std::move(s.deque))
+    , buffer_data(s.buffer_data) {
   }
 
   ~Stealer() {
