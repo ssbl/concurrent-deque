@@ -252,8 +252,7 @@ public:
   Worker(const Worker<T> &w) = delete;
 
   // Move constructor.
-  Worker(Worker<T> &&w) : deque(w.deque) {
-    w.deque = nullptr;
+  Worker(Worker<T> &&w) : deque(std::move(w.deque)) {
   }
 
   ~Worker() {
