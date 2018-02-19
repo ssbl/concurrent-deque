@@ -36,7 +36,7 @@ public:
   }
 
   long size() const {
-    return 1 << log_size;
+    return static_cast<long>(1 << log_size);
   }
 
   T get(long i) const {
@@ -75,8 +75,7 @@ private:
   std::atomic<buffer_tls *> id_list;
 
 public:
-  Reclaimer() {
-    id_list = nullptr;
+  Reclaimer() : id_list(nullptr) {
   }
 
   ~Reclaimer() {
@@ -117,9 +116,9 @@ public:
   Reclaimer reclaimer;
   std::atomic<Buffer<T> *> buffer;
 
-  Deque() : top(0), bottom(0), unlinked(), reclaimer() {
-    buffer = new Buffer<T>(log_initial_size, 0);
-  };
+  Deque() : top(0), bottom(0), unlinked(), reclaimer(),
+	    buffer(new Buffer<T>(log_initial_size, 0)) {
+  }
 
   ~Deque() {
     auto b = buffer.load(std::memory_order_relaxed);
@@ -245,7 +244,7 @@ private:
   std::shared_ptr<Deque<T>> deque;
 
 public:
-  Worker(std::shared_ptr<Deque<T>> d) : deque(d) {
+  explicit Worker(std::shared_ptr<Deque<T>> d) : deque(d) {
   }
 
   // Copy constructor.
@@ -276,7 +275,7 @@ private:
   buffer_tls *buffer_data;
 
 public:
-  Stealer(std::shared_ptr<Deque<T>> d)
+  explicit Stealer(std::shared_ptr<Deque<T>> d)
     : deque(d)
     , buffer_data(deque->reclaimer.register_thread()) {
   }
